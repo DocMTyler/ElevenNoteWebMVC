@@ -48,7 +48,7 @@ namespace ElevenNote.WebMVC.Controllers
             return View(model);
         }
 
-        //GET 
+        //GET Details
         public ActionResult Details(int id)
         {
             var svc = CreateNoteService();
@@ -56,6 +56,73 @@ namespace ElevenNote.WebMVC.Controllers
 
             return View(model);
         }
+
+        //GET Edit
+        public ActionResult Edit(int id)
+        {
+            var service = CreateNoteService();
+            var detail = service.GetNoteById(id);
+            var model = new NoteEdit
+            {
+                NoteID = detail.NoteID,
+                Title = detail.Title,
+                Content = detail.Content
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, NoteEdit model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            if(model.NoteID != id)
+            {
+                ModelState.AddModelError("", "ID Mismatch");
+                return View(model);
+            }
+
+            var service = CreateNoteService();
+
+            if (service.UpdateNote(model))
+            {
+                TempData["Save Result"] = "Your note was updated";
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", "Your note could not be updated");
+            return View(model);
+        }
+
+        //GET DELETE
+       // [ActionName("Delete")]
+        public ActionResult Delete(int id)
+        {
+            var svc = CreateNoteService();
+            var model = svc.GetNoteById(id);
+
+            return View(model);
+        }
+
+        //POST DELETE
+        [HttpPost]
+        [ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteNote(int id)
+        {
+            var service = CreateNoteService();
+
+            service.DeleteNote(id);
+
+            TempData["Save Result"] = "Your note was deleted";
+            
+            return RedirectToAction("Index");
+        }
+
+
+
 
         private NoteService CreateNoteService()
         {
